@@ -67,9 +67,10 @@ int main(int argc, char *argv[])
     /// 设置了EV_FEATURE_FDS 其他特征就无法设置，在windows中EV_FEATURE_FDS无效
     /// 仅仅限制kqueue epoll
     // event_config_require_features(conf, EV_FEATURE_ET);
-    // event_config_require_features(conf, EV_FEATURE_ET | EV_FEATURE_FDS);
+#ifndef _WIN32
+    event_config_require_features(conf, EV_FEATURE_ET | EV_FEATURE_FDS);
     // event_config_require_features(conf, EV_FEATURE_FDS);
-
+#endif
 
     ///初始化配置libevent的上下文
     event_base *base = event_base_new_with_config(conf);
