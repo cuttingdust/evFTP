@@ -6,8 +6,6 @@
 #include <signal>
 #endif
 
-#define SPORT 5001
-
 int main(int argc, char *argv[])
 {
 #ifdef _WIN32
@@ -36,24 +34,47 @@ int main(int argc, char *argv[])
         std::cout << methods[i] << std::endl;
     }
 
-    ///创建libevent的上下文
-    event_base *base = event_base_new();
+    ///初始化配置libevent的上下文
+    event_base *base = event_base_new_with_config(conf);
+    event_config_free(conf);
+
     if (!base)
     {
-        std::cerr << "event_base_new failed!" << std::endl;
+        std::cerr << "event_base_new_with_config failed!" << std::endl;
+        base = event_base_new();
+        if (!base)
+        {
+            std::cerr << "event_base_new failed!" << std::endl;
+            return 0;
+        }
     }
     else
     {
-        std::cout << "event_base_new success!" << std::endl;
+        /// 确认特征是否生效
+        int f = event_base_get_features(base);
+        if (f & EV_FEATURE_ET)
+            std::cout << "EV_FEATURE_ET events are supported." << std::endl;
+        else
+            std::cout << "EV_FEATURE_ET events are not supported." << std::endl;
+
+        if (f & EV_FEATURE_O1)
+            std::cout << "EV_FEATURE_O1 events are supported." << std::endl;
+        else
+            std::cout << "EV_FEATURE_O1 events are not supported." << std::endl;
+
+        if (f & EV_FEATURE_FDS)
+            std::cout << "EV_FEATURE_FDS events are supported." << std::endl;
+        else
+            std::cout << "EV_FEATURE_FDS events are not supported." << std::endl;
+
+        if (f & EV_FEATURE_EARLY_CLOSE)
+            std::cout << "EV_FEATURE_EARLY_CLOSE events are supported." << std::endl;
+        else
+            std::cout << "EV_FEATURE_EARLY_CLOSE events are not supported." << std::endl;
+
+        std::cout << "event_base_new_with_config success!" << std::endl;
         event_base_free(base);
     }
-
-    /// 监听端口
-    /// socket, bind, listen 绑定事件
-    sockaddr_in sin;
-    memset(&sin, 0, sizeof(sin));
-    sin.sin_family = AF_INET;
-    sin.sin_port   = htons(SPORT);
 
 #ifdef _WIN32
     WSACleanup();
