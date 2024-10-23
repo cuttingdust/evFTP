@@ -12,13 +12,14 @@ static void Kill(evutil_socket_t sock, short which, void *arg)
 {
     std::cout << "Kill" << std::endl;
 
-    // event *ev = (event *)arg;
-    // /// 如果处于非待决
-    // if (!evsignal_pending(ev, NULL))
-    // {
-    //     event_del(ev);
-    //     event_add(ev, NULL);
-    // }
+    event *ev = (event *)arg;
+    /// 如果处于非待决
+    if (!evsignal_pending(ev, NULL))
+    {
+        std::cout << "event_del and event_add " << __func__ << std::endl;
+        event_del(ev);
+        event_add(ev, NULL);
+    }
 }
 
 
