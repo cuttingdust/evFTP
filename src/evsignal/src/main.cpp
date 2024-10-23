@@ -58,6 +58,22 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    /// 添加kill信号
+    ///  非持久事件，只进入一次 event_self_cbarg()传递当前的event
+    event *ksig = event_new(base, SIGTERM, EV_SIGNAL, Kill, event_self_cbarg());
+    if (!ksig)
+    {
+        std::cerr << "SIGTERM evsignal_new failed!" << std::endl;
+        return -1;
+    }
+
+    if (event_add(ksig, 0) != 0)
+    {
+        std::cerr << "SIGTERM event_add failed!" << std::endl;
+        return -1;
+    }
+
+
     /// 进入事件主循环
     event_base_dispatch(base);
     event_free(csig);
