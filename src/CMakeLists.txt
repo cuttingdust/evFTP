@@ -31,3 +31,4 @@ include(CommonTools)
 
 add_subdirectory(evserver)
 add_subdirectory(evconf)
+add_subdirectory(evsignal)

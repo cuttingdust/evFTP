@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
     event_config_set_num_cpus_hint(conf, si.dwNumberOfProcessors);
 #endif
 
+
+#ifndef _WIN32
     /// 设置特征
     /// 设置了EV_FEATURE_FDS 其他特征就无法设置，在windows中EV_FEATURE_FDS无效
     /// 仅仅限制kqueue epoll
-    // event_config_require_features(conf, EV_FEATURE_ET);
-#ifndef _WIN32
     event_config_require_features(conf, EV_FEATURE_ET | EV_FEATURE_FDS);
     // event_config_require_features(conf, EV_FEATURE_FDS);
 #endif
