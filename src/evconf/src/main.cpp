@@ -34,11 +34,20 @@ int main(int argc, char *argv[])
         std::cout << methods[i] << std::endl;
     }
 
+
+    ///设置网络模型
+    // event_config_avoid_method(conf, "select");
+    // event_config_avoid_method(conf, "wepoll");
+    event_config_avoid_method(conf, "epoll");
+    // event_config_avoid_method(conf, "poll");
+
+
     /// 设置特征
     /// 设置了EV_FEATURE_FDS 其他特征就无法设置，在windows中EV_FEATURE_FDS无效
-    // event_config_require_features(conf, EV_FEATURE_ET);
+    event_config_require_features(conf, EV_FEATURE_ET);
     // event_config_require_features(conf, EV_FEATURE_ET | EV_FEATURE_FDS);
-    event_config_require_features(conf, EV_FEATURE_FDS);
+    // event_config_require_features(conf, EV_FEATURE_FDS);
+
 
     ///初始化配置libevent的上下文
     event_base *base = event_base_new_with_config(conf);
@@ -56,6 +65,10 @@ int main(int argc, char *argv[])
     }
     else
     {
+        /// 获取当前的网络模型
+        std::cout << "current method: " << event_base_get_method(base) << std::endl;
+
+
         /// 确认特征是否生效
         int f = event_base_get_features(base);
         if (f & EV_FEATURE_ET)
