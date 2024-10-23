@@ -29,4 +29,5 @@ message("Found libevent LIbRary: ${Libevent_LIBRARIES}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CommonTools)
 
+add_subdirectory(evserver)
 add_subdirectory(evconf)
