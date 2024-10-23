@@ -3,7 +3,7 @@
 #include <iostream>
 
 #ifndef _WIN32
-#include <signal>
+#include <signal.h>
 #endif
 
 int main(int argc, char *argv[])
