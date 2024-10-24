@@ -21,10 +21,6 @@ set(CMAKE_BUILD_TYPE Debug)
 find_package(Libevent CONFIG REQUIRED)
 message("Found libevent FOUND: ${Libevent_FOUND}")
 message("Found libevent VERSION: ${Libevent_VERSION}")
-message("Found libevent include: ${Libevent_INCLUDE_DIR}")
-message("Found libevent include: ${Libevent_INCLUDES}")
-message("Found libevent Library: ${Libevent_LIBRARY}")
-message("Found libevent LIbRary: ${Libevent_LIBRARIES}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CommonTools)
@@ -33,7 +29,8 @@ add_subdirectory(evserver)
 add_subdirectory(evconf)
 add_subdirectory(evtimer)
 
-
 if(NOT WIN32)
   add_subdirectory(evsignal)
 endif()
+
+add_subdirectory(evfile)
