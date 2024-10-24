@@ -31,6 +31,6 @@ add_subdirectory(evtimer)
 
 if(NOT WIN32)
   add_subdirectory(evsignal)
+  add_subdirectory(evfile)
 endif()
 
-add_subdirectory(evfile)

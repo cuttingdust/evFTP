@@ -13,19 +13,19 @@
 
 void read_file(evutil_socket_t fd, short event, void *arg)
 {
-    // char buf[1024] = { 0 };
-    // int  len       = ::read(fd, buf, sizeof(buf) - 1);
-    // if (len > 0)
-    // {
-    //     std::cout << buf << std::endl;
-    // }
-    // else
-    // {
-    //     std::cout << "." << std::flush;
-    //     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    // }
+    char buf[1024] = { 0 };
+    int  len       = ::read(fd, buf, sizeof(buf) - 1);
+    if (len > 0)
+    {
+        std::cout << buf << std::endl;
+    }
+    else
+    {
+        std::cout << "." << std::flush;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
 
-    std::cout << "read_file" << std::endl;
+    //std::cout << "read_file" << std::endl;
 }
 
 int main(int argc, char *argv[])
