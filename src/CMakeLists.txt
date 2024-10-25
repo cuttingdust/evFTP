@@ -33,5 +33,6 @@ add_subdirectory(evsocket)
 if(NOT WIN32)
   add_subdirectory(evsignal)
   add_subdirectory(evfile)
+  add_subdirectory(evloop)
 endif()
 

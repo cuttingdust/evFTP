@@ -13,6 +13,7 @@
 
 #define SPORT 5001
 
+/// 正常断开连接也会进入，超时会进入
 void client_cb(evutil_socket_t s, short w, void *arg)
 {
     /// 水平触发LT 只有有数据没有处理，会一直进入
@@ -63,6 +64,7 @@ void listen_cb(evutil_socket_t s, short w, void *arg)
     event_base *base = (event_base *)arg;
     /// 水平触发LT 只有有数据没有处理，会一直进入
     // event  *ev = event_new(base, client, EV_READ | EV_PERSIST, client_cb, event_self_cbarg());
+    /// 边缘触发ET 有数据时只进入一次
     event  *ev = event_new(base, client, EV_READ | EV_PERSIST | EV_ET, client_cb, event_self_cbarg());
     timeval t  = { 10, 0 };
     event_add(ev, &t);
