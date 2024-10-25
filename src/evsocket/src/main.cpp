@@ -17,33 +17,33 @@ void client_cb(evutil_socket_t s, short w, void *arg)
 {
     /// 水平触发LT 只有有数据没有处理，会一直进入
     /// 边缘触发ET 有数据时只进入一次
-    std::cout << "." << std::flush;
-    return;
+    // std::cout << "." << std::flush;
+    // return;
 
-    // event *ev = (event *)arg;
-    // /// 判断超时
-    // if (w & EV_TIMEOUT)
-    // {
-    //     std::cout << "timeout" << std::endl;
-    //     event_free(ev);
-    //     evutil_closesocket(s);
-    //     return;
-    // }
-    //
-    // char buf[1024] = { 0 };
-    // int  len       = recv(s, buf, sizeof(buf) - 1, 0);
-    // if (len > 0)
-    // {
-    //     std::cout << buf << std::endl;
-    //     send(s, "ok", 2, 0);
-    // }
-    // else
-    // {
-    //     /// 需要清理event
-    //     std::cout << "event_free" << std::endl;
-    //     event_free(ev);
-    //     evutil_closesocket(s);
-    // }
+    event *ev = (event *)arg;
+    /// 判断超时
+    if (w & EV_TIMEOUT)
+    {
+        std::cout << "timeout" << std::endl;
+        event_free(ev);
+        evutil_closesocket(s);
+        return;
+    }
+
+    char buf[1024] = { 0 };
+    int  len       = recv(s, buf, sizeof(buf) - 1, 0);
+    if (len > 0)
+    {
+        std::cout << buf << std::endl;
+        send(s, "ok", 2, 0);
+    }
+    else
+    {
+        /// 需要清理event
+        std::cout << "event_free" << std::endl;
+        event_free(ev);
+        evutil_closesocket(s);
+    }
 }
 
 
