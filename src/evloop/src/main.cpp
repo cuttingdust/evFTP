@@ -1,17 +1,34 @@
 #include <event2/event.h>
 #include <iostream>
+#include <thread>
 #include <signal.h>
+
+using namespace std::chrono_literals;
+
+
+static bool isexit = false;
 
 /// sock 文件描述符，which 事件类型 arg传递的参数
 static void Ctrl_C(evutil_socket_t sock, short which, void *arg)
 {
     std::cout << "Ctrl_C" << std::endl;
+
+    event_base *base = (event_base *)arg;
+    /// 执行完当前处理的事件函数就退出
+    // event_base_loopbreak(base);
+
+    /// 运行所有的活动事件再退出
+    /// 事件循环没有运行时也要等运行一次再退出
+    timeval t = { 3, 0 };
+    event_base_loopexit(base, &t);
+
+    std::cout << "Ctrl_C end" << std::endl;
 }
 
 static void Kill(evutil_socket_t sock, short which, void *arg)
 {
     std::cout << "Kill" << std::endl;
-
+    // std::this_thread::sleep_for(3s);
     event *ev = (event *)arg;
     /// 如果处于非待决
     if (!evsignal_pending(ev, NULL))
@@ -25,7 +42,7 @@ static void Kill(evutil_socket_t sock, short which, void *arg)
 
 int main(int argc, char *argv[])
 {
-    std::cout << "evsignal start!\n";
+    std::cout << "evloop start!\n";
 #ifdef _WIN32
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -76,8 +93,18 @@ int main(int argc, char *argv[])
 
 
     /// 进入事件主循环
-    event_base_dispatch(base);
-    event_free(csig);
+    // event_base_dispatch(base);
+    /// EVLOOP_ONCE 等待一个事件运行，直到没有活动事件就退出返回0
+    /// EVLOOP_NONBLOCK  有活动事件就处理，没有就返回0
+    // while (!isexit)
+    // {
+    // event_base_loop(base, EVLOOP_NONBLOCK);
+    // }
+
+    // event_base_loop(base, EVLOOP_ONCE);
+    event_base_loop(base, EVLOOP_NO_EXIT_ON_EMPTY);
+
+    // event_free(csig);
     event_base_free(base);
 
     return 0;
