@@ -28,6 +28,7 @@ include(CommonTools)
 add_subdirectory(evserver)
 add_subdirectory(evconf)
 add_subdirectory(evtimer)
+add_subdirectory(evsocket)
 
 if(NOT WIN32)
   add_subdirectory(evsignal)
