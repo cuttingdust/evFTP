@@ -34,9 +34,26 @@ void write_cb(struct bufferevent *be, void *arg)
     std::cout << "[W]" << std::flush;
 }
 
+/// 错误，超时 （连接断开会进入）
 void event_cb(struct bufferevent *be, short events, void *arg)
 {
     std::cout << "[E]" << std::flush;
+    /// 读取超时时间发生后，数据读取停止
+    if (events & BEV_EVENT_TIMEOUT && events & BEV_EVENT_READING)
+    {
+        std::cout << "BEV_EVENT_READING BEV_EVENT_TIMEOUT" << std::endl;
+        // bufferevent_enable(be,EV_READ);
+        bufferevent_free(be);
+    }
+    else if (events & BEV_EVENT_ERROR)
+    {
+        std::cout << "BEV_EVENT_ERROR" << std::endl;
+        bufferevent_free(be);
+    }
+    else
+    {
+        std::cout << "OTHERS" << std::endl;
+    }
 }
 
 
@@ -50,6 +67,20 @@ void listen_cb(struct evconnlistener *e, evutil_socket_t s, struct sockaddr *a, 
 
     /// 添加监控事件
     bufferevent_enable(bev, EV_READ | EV_WRITE);
+
+    /// 设置水位
+    /// 读取水位
+    bufferevent_setwatermark(bev, EV_READ,
+        5,    /// 低水位 0就是无限制 默认是0
+        10); /// 高水位 0就是无限制 默认是0
+
+    bufferevent_setwatermark(bev, EV_WRITE,
+        5,      /// 低水位 0就是无限制 默认是0 缓冲数据低于5 写入回调被调用
+        0);    /// 高水位无效
+
+    /// 超时时间的设置
+    timeval t1 = { 3, 0 };
+    bufferevent_set_timeouts(bev, &t1, nullptr);
 
     /// 设置回调函数
     bufferevent_setcb(bev, read_cb, write_cb, event_cb, base);
