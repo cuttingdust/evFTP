@@ -30,6 +30,7 @@ add_subdirectory(evconf)
 add_subdirectory(evtimer)
 add_subdirectory(evsocket)
 add_subdirectory(evbuffer_server)
+add_subdirectory(evbuffer_client)
 
 if(NOT WIN32)
   add_subdirectory(evsignal)
