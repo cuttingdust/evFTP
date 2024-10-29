@@ -9,7 +9,7 @@
 #include <signal.h>
 #endif
 
-#define SPORT 5001
+#define SPORT 8080
 
 static std::string recvstr   = "";
 static int         recvCount = 0;
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
         return 1;
 #endif
 
-    std::cout << "event buffer server start!\n";
+    std::cout << "event buffer client start!\n";
     ///创建libevent的上下文
     event_base *base = event_base_new();
     if (base)
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
         sin.sin_family = AF_INET;
         sin.sin_port   = htons(SPORT);
         evutil_inet_pton(AF_INET, "127.0.0.1", &sin.sin_addr.s_addr);
-        FILE *fp = fopen("./src/evbuffer_client/main.cpp", "rb");
+        FILE *fp = fopen("../../src/evbuffer_client/src/main.cpp", "rb");
 
         /// 设置回调函数
         bufferevent_setcb(bev, client_read_cb, client_write_cb, client_event_cb, fp);

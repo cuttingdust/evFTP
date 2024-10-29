@@ -7,7 +7,7 @@
 #include <signal.h>
 #endif
 
-#define SPORT 5001
+#define SPORT 8080
 
 void read_cb(struct bufferevent *be, void *arg)
 {

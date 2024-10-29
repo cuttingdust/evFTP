@@ -7,7 +7,7 @@
 #include <signal.h>
 #endif
 
-#define SPORT 5001
+#define SPORT 8080
 
 void listen_cb(evconnlistener *ev, evutil_socket_t s, struct sockaddr *addr, int socklen, void *arg)
 {
