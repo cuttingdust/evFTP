@@ -130,10 +130,5 @@ int main(int argc, char *argv[])
         event_base_free(base);
     }
 
-
-#ifdef _WIN32
-    WSACleanup();
-#endif
-
     return 0;
 }

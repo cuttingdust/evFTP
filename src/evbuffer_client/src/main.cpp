@@ -119,19 +119,23 @@ void client_event_cb(struct bufferevent *be, short events, void *arg)
     /// 读取超时时间发生后，数据读取停止
     if (events & BEV_EVENT_TIMEOUT && events & BEV_EVENT_READING)
     {
-        // std::cout << "BEV_EVENT_READING BEV_EVENT_TIMEOUT" << std::endl;
+        std::cout << "BEV_EVENT_READING BEV_EVENT_TIMEOUT" << std::endl;
         // bufferevent_enable(be,EV_READ);
         bufferevent_free(be);
+        return;
     }
     else if (events & BEV_EVENT_ERROR)
     {
         std::cout << "BEV_EVENT_ERROR" << std::endl;
         bufferevent_free(be);
+        return;
     }
 
+    /// 服务器关闭事件
     if (events & BEV_EVENT_EOF)
     {
         std::cout << "BEV_EVENT_EOF" << std::endl;
+        bufferevent_free(be);
     }
 
     if (events & BEV_EVENT_CONNECTED)
@@ -242,10 +246,6 @@ int main(int argc, char *argv[])
         event_base_free(base);
     }
 
-
-#ifdef _WIN32
-    WSACleanup();
-#endif
 
     return 0;
 }
