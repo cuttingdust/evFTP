@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(evbuffer_client)
+project(evbuffer_zlib_server)
 
 
 cpp_execute(${PROJECT_NAME})

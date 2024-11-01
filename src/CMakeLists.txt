@@ -32,6 +32,7 @@ add_subdirectory(evsocket)
 add_subdirectory(evbuffer_server)
 add_subdirectory(evbuffer_client)
 add_subdirectory(evbuffer_filter)
+add_subdirectory(evbuffer_zlib_server)
 
 if(NOT WIN32)
   add_subdirectory(evsignal)
