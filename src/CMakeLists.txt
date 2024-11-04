@@ -19,8 +19,11 @@ set(CMAKE_BUILD_TYPE Debug)
 
 # 查找 vcpkg 安装的库
 find_package(Libevent CONFIG REQUIRED)
-message("Found libevent FOUND: ${Libevent_FOUND}")
-message("Found libevent VERSION: ${Libevent_VERSION}")
+message("Found Libevent FOUND: ${Libevent_FOUND}")
+message("Found Libevent VERSION: ${Libevent_VERSION}")
+find_package(ZLIB REQUIRED)
+message("Found ZLIB FOUND: ${ZLIB_FOUND}")
+message("Found ZLIB VERSION: ${ZLIB_VERSION}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CommonTools)

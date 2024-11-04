@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(evbuffer_zlib_server)
 
+set(DPS_LIBRARYS 
+ZLIB::ZLIB
+)
 
 cpp_execute(${PROJECT_NAME})
 
