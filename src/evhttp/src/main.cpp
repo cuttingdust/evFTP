@@ -4,12 +4,15 @@
 #include <event2/keyvalq_struct.h>
 #include <event2/buffer.h>
 #include <iostream>
+#include <filesystem>
 
 #ifndef _WIN32
 #include <signal.h>
 #endif
 
-#define SPORT 8080
+#define SPORT        8080
+#define DEFAULTINDEX "index.html"
+#define WEBROOT      "."
 
 void http_cb(struct evhttp_request *request, void *arg)
 {
@@ -61,6 +64,69 @@ void http_cb(struct evhttp_request *request, void *arg)
 
 
     /// 2 回复浏览器
+    ///  状态行 消息报头 响应正文 HTTP_NOTFOUND HTTP_INTERNAL
+
+    /// 分析出请求的文件 uri
+    ///  设置根目录 WEBROOT
+    std::string filepath = WEBROOT;
+    filepath += uri;
+    if (strcmp(uri, "/") == 0)
+    {
+        /// 默认加入首页文件
+        filepath += DEFAULTINDEX;
+    }
+
+    /// 消息报头
+    evkeyvalq *outhead = evhttp_request_get_output_headers(request);
+
+    /// 要支持 图片 js css 下载zip文件
+    /// 获取文件的后缀
+    /// ./root/index.html
+    int  pos    = filepath.rfind('.');
+    auto suffix = filepath.substr(pos + 1, filepath.size() - (pos + 1));
+    std::cout << "suffix = " << suffix << std::endl;
+    if (suffix == "jpg" || suffix == "gif" || suffix == "png" || suffix == "bmp")
+    {
+        std::string tmp = "image/" + suffix;
+        evhttp_add_header(outhead, "Content-Type", tmp.c_str());
+    }
+    else if (suffix == "zip")
+    {
+        evhttp_add_header(outhead, "Content-Type", "application/zip");
+    }
+    else if (suffix == "js")
+    {
+        evhttp_add_header(outhead, "Content-Type", "application/x-javascript");
+    }
+    else if (suffix == "css")
+    {
+        evhttp_add_header(outhead, "Content-Type", "text/css");
+    }
+    else if (suffix == "html")
+    {
+        evhttp_add_header(outhead, "Content-Type", "text/html;charset=UTF8");
+    }
+
+
+    /// 读取html文件返回正文
+    FILE *fp = fopen(filepath.c_str(), "rb");
+    if (!fp)
+    {
+        std::cout << "open file failed!" << std::endl;
+        evhttp_send_reply(request, HTTP_NOTFOUND, "", 0);
+        return;
+    }
+
+    evbuffer *outbuf = evhttp_request_get_output_buffer(request);
+    for (;;)
+    {
+        int len = fread(buf, 1, sizeof(buf), fp);
+        if (len <= 0)
+            break;
+        evbuffer_add(outbuf, buf, len);
+    }
+    fclose(fp);
+    evhttp_send_reply(request, HTTP_OK, "", outbuf);
 }
 
 int main(int argc, char *argv[])
