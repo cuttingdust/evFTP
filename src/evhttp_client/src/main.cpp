@@ -18,7 +18,7 @@
 void http_client_cb(struct evhttp_request *req, void *arg)
 {
     std::cout << __func__ << std::endl;
-    bufferevent *bev = (bufferevent *)arg;
+    event_base *base = (event_base *)arg;
 
     /// 服务端响应错误
     if (req == nullptr)
@@ -31,6 +31,22 @@ void http_client_cb(struct evhttp_request *req, void *arg)
     /// 获取path
     const char *path = evhttp_request_get_uri(req);
     std::cout << "request path is " << path << std::endl;
+    std::string filepath = ".";
+    filepath += path;
+
+    /// 如果路径中有目录，需要分析出目录，并创建
+    std::filesystem::path file_path(filepath);
+    std::filesystem::path dir_path = file_path.parent_path();
+    if (!std::filesystem::exists(dir_path))
+    {
+        std::filesystem::create_directories(dir_path);
+    }
+
+    FILE *fp = fopen(filepath.c_str(), "wb");
+    if (!fp)
+    {
+        std::cerr << "open file " << filepath << " failed!" << std::endl;
+    }
 
     /// 获取返回的code 200 404
     std::cout << "Response: " << evhttp_request_get_response_code(req) << " " ///200
@@ -44,8 +60,16 @@ void http_client_cb(struct evhttp_request *req, void *arg)
         if (len <= 0)
             break;
         buf[len] = 0;
+        if (!fp)
+            continue;
+        fwrite(buf, 1, len, fp);
         std::cout << buf << std::flush;
     }
+
+    if (fp)
+        fclose(fp);
+
+    event_base_loopbreak(base);
 }
 
 
@@ -70,9 +94,11 @@ int main(int argc, char *argv[])
     }
 
     /// 生成请求信息 GET
-    // std::string http_url = "http://ffmpeg.club/index.html?id=1";
-    std::string http_url = "http://ffmpeg.club/index39139011.html&id=990909";
-
+    std::string http_url = "http://ffmpeg.club/index.html?id=1";
+    http_url             = "http://ffmpeg.club/index39139011.html&id=990909"; /// NOT FOUND
+    http_url             = "http://ffmpeg.club/101.jpg";
+    http_url             = "http://img.keaitupian.cn/newupload/06/1687339478627284.jpg";
+    ///////////////////////////////////////////////////////////////////////////
     /// 分析url地址
     ///  uri
     evhttp_uri *uri = evhttp_uri_parse(http_url.c_str());
