@@ -2,15 +2,52 @@
 #include <event2/listener.h>
 #include <event2/http.h>
 #include <event2/keyvalq_struct.h>
+#include <event2/bufferevent.h>
 #include <event2/buffer.h>
+
 #include <iostream>
 #include <filesystem>
+
 
 #ifndef _WIN32
 #include <signal.h>
 #endif
 
 #define SPORT 8080
+
+void http_client_cb(struct evhttp_request *req, void *arg)
+{
+    std::cout << __func__ << std::endl;
+    bufferevent *bev = (bufferevent *)arg;
+
+    /// 服务端响应错误
+    if (req == nullptr)
+    {
+        int errcode = EVUTIL_SOCKET_ERROR();
+        std::cerr << "socket error: " << evutil_socket_error_to_string(errcode) << std::endl;
+        return;
+    }
+
+    /// 获取path
+    const char *path = evhttp_request_get_uri(req);
+    std::cout << "request path is " << path << std::endl;
+
+    /// 获取返回的code 200 404
+    std::cout << "Response: " << evhttp_request_get_response_code(req) << " " ///200
+              << evhttp_request_get_response_code_line(req) << std::endl;     /// OK
+
+    evbuffer *input = evhttp_request_get_input_buffer(req);
+    for (;;)
+    {
+        char buf[1024] = { 0 };
+        int  len       = evbuffer_remove(input, buf, sizeof(buf) - 1);
+        if (len <= 0)
+            break;
+        buf[len] = 0;
+        std::cout << buf << std::flush;
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +70,8 @@ int main(int argc, char *argv[])
     }
 
     /// 生成请求信息 GET
-    std::string http_url = "http://ffmpeg.club/index.html?id=1";
+    // std::string http_url = "http://ffmpeg.club/index.html?id=1";
+    std::string http_url = "http://ffmpeg.club/index39139011.html&id=990909";
 
     /// 分析url地址
     ///  uri
@@ -80,7 +118,26 @@ int main(int argc, char *argv[])
     {
         std::cout << "query is NULL" << std::endl;
     }
-    std::cout << "query: " << query << std::endl;
+    else
+    {
+        std::cout << "query: " << query << std::endl;
+    }
+
+
+    /// bufferevent  连接http服务器
+    bufferevent       *bev   = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
+    evhttp_connection *evcon = evhttp_connection_base_bufferevent_new(base, NULL, bev, host, port);
+
+    /// http client 请求 回调函数设置
+    evhttp_request *req = evhttp_request_new(http_client_cb, bev);
+
+    /// 设置请求的head 消息报头 信息
+    evkeyvalq *output_headers = evhttp_request_get_output_headers(req);
+    evhttp_add_header(output_headers, "Host", host);
+
+    /// 发起请求
+    evhttp_make_request(evcon, req, EVHTTP_REQ_GET, path);
+
 
     /// 事件分发处理
     if (base)
