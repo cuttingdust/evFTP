@@ -84,7 +84,7 @@ void http_cb(struct evhttp_request *request, void *arg)
     /// ./root/index.html
     int  pos    = filepath.rfind('.');
     auto suffix = filepath.substr(pos + 1, filepath.size() - (pos + 1));
-    std::cout << "suffix = " << suffix << std::endl;
+    // std::cout << "suffix = " << suffix << std::endl;
     if (suffix == "jpg" || suffix == "gif" || suffix == "png" || suffix == "bmp")
     {
         std::string tmp = "image/" + suffix;
@@ -173,6 +173,6 @@ int main(int argc, char *argv[])
     {
         event_base_free(base);
     }
-
+    std::cin.get();
     return 0;
 }

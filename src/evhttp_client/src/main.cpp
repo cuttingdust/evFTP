@@ -73,19 +73,8 @@ void http_client_cb(struct evhttp_request *req, void *arg)
 }
 
 
-int main(int argc, char *argv[])
+void testGetHttp()
 {
-#ifdef _WIN32
-    WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
-
-#else
-    /// 忽略管道信号，发送数据给已关闭的socket
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-        return 1;
-#endif
-
-    std::cout << "server start!\n";
     ///创建libevent的上下文
     event_base *base = event_base_new();
     if (base)
@@ -96,7 +85,7 @@ int main(int argc, char *argv[])
     /// 生成请求信息 GET
     std::string http_url = "http://ffmpeg.club/index.html?id=1";
     http_url             = "http://ffmpeg.club/index39139011.html&id=990909"; /// NOT FOUND
-    http_url             = "http://ffmpeg.club/101.jpg";
+    http_url             = "http://ffmpeg.club/101.jpg";                      /// 图片已失效
     http_url             = "http://img.keaitupian.cn/newupload/06/1687339478627284.jpg";
     ///////////////////////////////////////////////////////////////////////////
     /// 分析url地址
@@ -108,7 +97,7 @@ int main(int argc, char *argv[])
     if (!scheme)
     {
         std::cerr << "scheme is null" << std::endl;
-        return -1;
+        return;
     }
     std::cout << "scheme: " << scheme << std::endl;
 
@@ -126,7 +115,7 @@ int main(int argc, char *argv[])
     if (!host)
     {
         std::cerr << "host is null" << std::endl;
-        return -1;
+        return;
     }
     std::cout << "host: " << host << std::endl;
 
@@ -168,10 +157,120 @@ int main(int argc, char *argv[])
     /// 事件分发处理
     if (base)
         event_base_dispatch(base);
+    if (uri)
+        evhttp_uri_free(uri);
+    if (evcon)
+        evhttp_connection_free(evcon);
+    if (base)
+        event_base_free(base);
+}
+
+void testPostHttp()
+{
+    ///创建libevent的上下文
+    event_base *base = event_base_new();
     if (base)
     {
-        event_base_free(base);
+        std::cout << "event_base_new success!" << std::endl;
     }
+
+    /// 生成请求信息 POST
+    std::string http_url = "http://127.0.0.1:8080/index.html";
+    ///////////////////////////////////////////////////////////////////////////
+    /// 分析url地址
+    ///  uri
+    evhttp_uri *uri = evhttp_uri_parse(http_url.c_str());
+
+    /// http https
+    const char *scheme = evhttp_uri_get_scheme(uri);
+    if (!scheme)
+    {
+        std::cerr << "scheme is null" << std::endl;
+        return;
+    }
+    std::cout << "scheme: " << scheme << std::endl;
+
+    /// port 80
+    int port = evhttp_uri_get_port(uri);
+    if (port < 0)
+    {
+        if (strcmp(scheme, "http") == 0)
+            port = 80;
+    }
+    std::cout << "port: " << port << std::endl;
+
+    /// host ffmpeg.club
+    const char *host = evhttp_uri_get_host(uri);
+    if (!host)
+    {
+        std::cerr << "host is null" << std::endl;
+        return;
+    }
+    std::cout << "host: " << host << std::endl;
+
+    /// path /index.html
+    const char *path = evhttp_uri_get_path(uri);
+    if (!path || strlen(path) == 0)
+    {
+        path = "/";
+    }
+    std::cout << "path: " << path << std::endl;
+
+    /// ?id=1  后面的内容 id=1
+    const char *query = evhttp_uri_get_query(uri);
+    if (!query)
+    {
+        std::cout << "query is NULL" << std::endl;
+    }
+    else
+    {
+        std::cout << "query: " << query << std::endl;
+    }
+
+    /// bufferevent  连接http服务器
+    bufferevent       *bev   = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
+    evhttp_connection *evcon = evhttp_connection_base_bufferevent_new(base, NULL, bev, host, port);
+
+    /// http client 请求 回调函数设置
+    evhttp_request *req = evhttp_request_new(http_client_cb, bev);
+
+    /// 设置请求的head 消息报头 信息
+    evkeyvalq *output_headers = evhttp_request_get_output_headers(req);
+    evhttp_add_header(output_headers, "Host", host);
+
+    /// 发起post请求
+    evbuffer *output = evhttp_request_get_output_buffer(req);
+    evbuffer_add_printf(output, "xcj=%d&b=%d", 1, 2);
+
+    /// 发起请求
+    evhttp_make_request(evcon, req, EVHTTP_REQ_POST, path);
+
+
+    /// 事件分发处理
+    if (base)
+        event_base_dispatch(base);
+    if (uri)
+        evhttp_uri_free(uri);
+    if (evcon)
+        evhttp_connection_free(evcon);
+    if (base)
+        event_base_free(base);
+}
+int main(int argc, char *argv[])
+{
+#ifdef _WIN32
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+#else
+    /// 忽略管道信号，发送数据给已关闭的socket
+    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+        return 1;
+#endif
+
+    std::cout << "test http client start!\n";
+    testGetHttp();
+    testPostHttp();
 
     return 0;
 }
