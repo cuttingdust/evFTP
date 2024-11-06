@@ -38,6 +38,7 @@ add_subdirectory(evbuffer_filter)
 add_subdirectory(evbuffer_zlib_server)
 add_subdirectory(evhttp)
 add_subdirectory(evhttp_client)
+add_subdirectory(evthreadpool)
 
 if(NOT WIN32)
   add_subdirectory(evsignal)
@@ -45,3 +46,18 @@ if(NOT WIN32)
   add_subdirectory(evloop)
 endif()
 
+# 拷贝asset目录到输出目录
+set(ASSET_PATH ${CMAKE_CURRENT_SOURCE_DIR}/asset)
+
+# 查找源目录中的所有文件
+file(GLOB_RECURSE FILES_TO_COPY "${ASSET_PATH}/*")
+
+# 循环复制文件到目标目录
+foreach(FILE ${FILES_TO_COPY})
+    # 获取仅文件名
+    get_filename_component(FILENAME ${FILE} NAME)
+    
+    # 复制文件到目标目录
+    file(COPY ${FILE} DESTINATION ${OUT_RUN_PATH})
+	message("CPOY ${FILE}")
+endforeach()
