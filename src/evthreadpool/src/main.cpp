@@ -1,5 +1,5 @@
 #include "XThreadPool.h"
-#include "XFTPServerCMD.h"
+#include "XFTPFactory.h"
 
 #include <event2/event.h>
 #include <event2/listener.h>
@@ -16,12 +16,12 @@
 #include <thread>
 
 
-#define SPORT 8080
+#define SPORT 21
 
 void listen_cb(struct evconnlistener *e, evutil_socket_t s, struct sockaddr *a, int socklen, void *arg)
 {
     std::cout << "listen_cb" << std::endl;
-    XTask *task = new XFTPServerCMD();
+    XTask *task = XFTPFactory::getInstance()->createTask();
     task->sock_ = s;
     XThreadPool::getInstance()->dispatch(task);
 }

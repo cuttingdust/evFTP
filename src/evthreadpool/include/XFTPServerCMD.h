@@ -10,9 +10,9 @@
 
 #ifndef XFTPSERVERCMD_H
 #define XFTPSERVERCMD_H
-#include "XTask.h"
+#include "XFTPTask.h"
 
-class XFTPServerCMD : public XTask
+class XFTPServerCMD : public XFTPTask
 {
 public:
     XFTPServerCMD();
@@ -20,6 +20,8 @@ public:
 
 public:
     auto init() -> bool override;
+    auto read(struct bufferevent *bev) -> void override;
+    auto event(struct bufferevent *bev, short what) -> void override;
 };
 
 #endif // XFTPSERVERCMD_H
