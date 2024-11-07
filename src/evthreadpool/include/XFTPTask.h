@@ -13,6 +13,8 @@
 
 #include "XTask.h"
 
+#include <string>
+
 class XFTPTask : public XTask
 {
 public:
@@ -21,10 +23,34 @@ public:
     virtual auto event(struct bufferevent *bev, short what) -> void{};
     auto         setCallback(struct bufferevent *bev) -> void;
 
+    /// \brief 解析协议
+    /// \param type
+    /// \param msg
+    virtual auto parse(const std::string &type, const std::string &msg) -> void{};
+
+    auto init() -> bool override
+    {
+        return true;
+    }
+
 protected:
     static auto readCB(bufferevent *bev, void *arg) -> void;
     static auto writeCB(bufferevent *bev, void *arg) -> void;
     static auto eventCB(struct bufferevent *bev, short what, void *arg) -> void;
+
+
+public:
+    /// \brief 回复cmd消息
+    /// \param msg
+    auto resCMD(std::string msg) -> void;
+
+public:
+    std::string curDir_  = "/";
+    std::string rootDir  = ".";
+    XFTPTask   *cmdTask_ = nullptr;
+
+protected:
+    struct bufferevent *bev_ = 0;
 };
 
 #endif // XFTPTASK_H
