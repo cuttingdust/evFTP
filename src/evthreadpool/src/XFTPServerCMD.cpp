@@ -62,8 +62,8 @@ auto XFTPServerCMD::init() -> bool
     this->setCallback(bev);
 
     /// Ìí¼Ó³¬Ê±
-    timeval rt_ = { 60, 0 };
-    bufferevent_set_timeouts(bev, &rt_, 0);
+    timeval rt = { 600, 0 };
+    bufferevent_set_timeouts(bev, &rt, 0);
 
     std::string msg = "220 Welcome to libevent XFtpServer\r\n";
     bufferevent_write(bev, msg.c_str(), msg.size());

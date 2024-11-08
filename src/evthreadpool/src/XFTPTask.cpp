@@ -65,7 +65,7 @@ auto XFTPTask::connectPORT() -> void
     setCallback(bev_);
 
     /// Ìí¼Ó³¬Ê±
-    timeval rt = { 60, 0 };
+    timeval rt = { 600, 0 };
     bufferevent_set_timeouts(bev_, &rt, 0);
     bufferevent_socket_connect(bev_, (sockaddr *)&sin, sizeof(sin));
 }

@@ -1,10 +1,12 @@
 #include "XFTPList.h"
 
 #include <event2/bufferevent.h>
-#include <io.h>
+// #include <io.h>
 
 #include <iostream>
+#include <filesystem>
 
+namespace fs = std::filesystem;
 
 XFTPList::XFTPList()
 {
@@ -113,55 +115,107 @@ auto XFTPList::event(struct bufferevent *bev, short what) -> void
     }
 }
 
-std::string XFTPList::getListData(const std::string &path)
+std::string format_file_time(const fs::file_time_type &file_time)
+{
+    /// 将 file_time_type 转换为系统时间
+    auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+            file_time - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
+
+    auto time_t = std::chrono::system_clock::to_time_t(sctp);
+
+    /// 使用 std::stringstream 格式化时间
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time_t), "%b %d %H:%M");
+    return ss.str();
+}
+
+
+auto XFTPList::getListData(const std::string &path) -> std::string
 {
     /// -rwxrwxrwx 1 root group 64463 Mar 14 09:53 101.jpg\r\n
     std::string data = "";
-    /// 存储文件信息
-    _finddata_t file;
-
-    /// 目录上下文
-    const std::string filePaths = path + "/*.*";
-    intptr_t          dir       = _findfirst(filePaths.c_str(), &file);
-    if (dir < 0)
+    try
     {
-        return data;
-    }
+        for (const auto &entry : fs::directory_iterator(path))
+        {
+            std::string tmp         = "";
+            std::string permissions = entry.is_directory() ? "drwxrwxrwx" : "-rwxrwxrwx";
+            tmp += permissions + " 1 root group ";
 
-    do
+            tmp += std::to_string(entry.file_size()) + " ";
+
+            /// 日期时间，这里简化使用系统默认的本地化时间格式，可以自定义时间格式或者获取特定的时区信息
+            tmp += format_file_time(fs::last_write_time(entry)) + " ";
+
+            /// 文件名
+            tmp += entry.path().filename().string() + "\r\n";
+
+            std::cout << tmp;
+            data += tmp;
+        }
+    }
+    catch (const fs::filesystem_error &e)
     {
-        std::string tmp = "";
-        /// 是否是目录 去掉 .和..
-        if (file.attrib & _A_SUBDIR)
-        {
-            if (strcmp(file.name, ".") == 0 || strcmp(file.name, "..") == 0)
-            {
-                continue;
-            }
-            tmp += "drwxrwxrwx 1 root group ";
-        }
-        else
-        {
-            tmp += "-rwxrwxrwx 1 root group ";
-        }
-
-        /// 文件大小
-        char buf[1024];
-        sprintf(buf, "%u", file.size);
-        tmp += buf;
-
-        /// 日期时间
-        strftime(buf, sizeof(buf) - 1, "%b %d %H:%M", localtime(&file.time_write));
-        tmp += " ";
-        tmp += buf;
-        tmp += " ";
-        tmp += file.name;
-        tmp += "\r\n";
-        data += tmp;
-
-        // std::cout << __func__ << " " << tmp;
+        std::cerr << "Error while listing directory: " << e.what() << std::endl;
+        return "";
     }
-    while (_findnext(dir, &file) == 0);
-
+    catch (...)
+    {
+        std::cerr << "Unknown error occurred." << std::endl;
+        return "";
+    }
     return data;
 }
+
+// auto XFTPList::getListData(const std::string &path) -> std::string
+// {
+//     /// -rwxrwxrwx 1 root group 64463 Mar 14 09:53 101.jpg\r\n
+//     std::string data = "";
+//     /// 存储文件信息
+//     _finddata_t file;
+//
+//     /// 目录上下文
+//     const std::string filePaths = path + "/*.*";
+//     intptr_t          dir       = _findfirst(filePaths.c_str(), &file);
+//     if (dir < 0)
+//     {
+//         return data;
+//     }
+//
+//     do
+//     {
+//         std::string tmp = "";
+//         /// 是否是目录 去掉 .和..
+//         if (file.attrib & _A_SUBDIR)
+//         {
+//             if (strcmp(file.name, ".") == 0 || strcmp(file.name, "..") == 0)
+//             {
+//                 continue;
+//             }
+//             tmp += "drwxrwxrwx 1 root group ";
+//         }
+//         else
+//         {
+//             tmp += "-rwxrwxrwx 1 root group ";
+//         }
+//
+//         /// 文件大小
+//         char buf[1024];
+//         sprintf(buf, "%u", file.size);
+//         tmp += buf;
+//
+//         /// 日期时间
+//         strftime(buf, sizeof(buf) - 1, "%b %d %H:%M", localtime(&file.time_write));
+//         tmp += " ";
+//         tmp += buf;
+//         tmp += " ";
+//         tmp += file.name;
+//         tmp += "\r\n";
+//         data += tmp;
+//
+//         // std::cout << __func__ << " " << tmp;
+//     }
+//     while (_findnext(dir, &file) == 0);
+//
+//     return data;
+// }

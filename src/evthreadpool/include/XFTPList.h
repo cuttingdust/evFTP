@@ -24,7 +24,7 @@ public:
     auto event(struct bufferevent *bev, short what) -> void override;
 
 public:
-    std::string getListData(const std::string &path);
+    auto getListData(const std::string &path) -> std::string;
 };
 
 #endif // XFTPLIST_H
