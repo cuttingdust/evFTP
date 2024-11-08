@@ -77,6 +77,12 @@ auto XFTPTask::close() -> void
         bufferevent_free(bev_);
         bev_ = 0;
     }
+
+    if (fp_)
+    {
+        fclose(fp_);
+        fp_ = 0;
+    }
 }
 
 auto XFTPTask::send(const std::string &data) -> void

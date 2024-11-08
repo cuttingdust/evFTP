@@ -69,7 +69,9 @@ public:
     int         port_ = 0;
 
 protected:
-    struct bufferevent *bev_ = 0;
+    struct bufferevent *bev_      = 0;
+    FILE               *fp_       = 0;
+    char                buf[1024] = { 0 };
 };
 
 #endif // XFTPTASK_H

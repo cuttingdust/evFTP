@@ -12,6 +12,12 @@ XFTPServerCMD::XFTPServerCMD()
 
 XFTPServerCMD::~XFTPServerCMD()
 {
+    close();
+    for (auto &ptr : calls_del_)
+    {
+        ptr.first->close();
+        delete ptr.first;
+    }
 }
 
 /// 注册命令处理对象 不需要考虑线程安全 调用时还未分发到线程
@@ -37,6 +43,7 @@ auto XFTPServerCMD::reg(const std::string& cmd, XFTPTask* call) -> void
         return;
     }
     calls_.emplace(cmd, call);
+    calls_del_[call] = 0;
 }
 
 auto XFTPServerCMD::init() -> bool
@@ -46,6 +53,11 @@ auto XFTPServerCMD::init() -> bool
     /// base socket
 
     bufferevent* bev = bufferevent_socket_new(base_, sock_, BEV_OPT_CLOSE_ON_FREE);
+    if (!bev)
+    {
+        delete this;
+        return false;
+    }
     this->bev_       = bev;
     this->setCallback(bev);
 
@@ -110,7 +122,6 @@ auto XFTPServerCMD::event(struct bufferevent* bev, short what) -> void
     if (what & (BEV_EVENT_EOF | BEV_EVENT_ERROR | BEV_EVENT_TIMEOUT))
     {
         std::cout << "BEV_EVENT_EOF | BEV_EVENT_ERROR | BEV_EVENT_TIMEOUT" << std::endl;
-        bufferevent_free(bev);
         delete this;
     }
 }

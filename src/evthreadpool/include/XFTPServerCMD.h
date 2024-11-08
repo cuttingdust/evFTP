@@ -32,7 +32,10 @@ public:
     auto event(struct bufferevent *bev, short what) -> void override;
 
 private:
+    /// 注册的处理对象
     std::map<std::string, XFTPTask *> calls_;
+
+    std::map<XFTPTask *, int> calls_del_;
 };
 
 #endif // XFTPSERVERCMD_H

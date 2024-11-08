@@ -4,6 +4,8 @@
 #include "XFTPUser.h"
 #include "XFTPList.h"
 #include "XFTPPort.h"
+#include "XFTPRetr.h"
+#include "XFTPStor.h"
 
 auto XFTPFactory::createTask() -> XTask *
 {
@@ -23,6 +25,9 @@ auto XFTPFactory::createTask() -> XTask *
 
     x->reg("CDUP", list);
 
+    x->reg("RETR", new XFTPRetr);
+
+    x->reg("STOR", new XFTPStor);
     return x;
 }
 
