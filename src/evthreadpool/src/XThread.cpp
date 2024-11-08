@@ -10,6 +10,9 @@
 #include <list>
 #include <mutex>
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 static void notify_cb(evutil_socket_t fd, short which, void *arg)
 {
