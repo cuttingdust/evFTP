@@ -20,6 +20,11 @@ public:
 
 public:
     auto parse(const std::string &type, const std::string &msg) -> void override;
+    auto write(struct bufferevent *bev) -> void override;
+    auto event(struct bufferevent *bev, short what) -> void override;
+
+public:
+    std::string getListData(const std::string &path);
 };
 
 #endif // XFTPLIST_H

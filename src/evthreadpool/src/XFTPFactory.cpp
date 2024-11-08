@@ -1,9 +1,9 @@
 #include "XFTPFactory.h"
 
-#include "XFTPList.h"
 #include "XFTPServerCMD.h"
 #include "XFTPUser.h"
 #include "XFTPList.h"
+#include "XFTPPort.h"
 
 auto XFTPFactory::createTask() -> XTask *
 {
@@ -14,6 +14,10 @@ auto XFTPFactory::createTask() -> XTask *
 
     XFTPList *list = new XFTPList;
     x->reg("PWD", list);
+
+    x->reg("PORT", new XFTPPort);
+
+    x->reg("LIST", list);
 
 
     return x;

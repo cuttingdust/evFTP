@@ -84,7 +84,15 @@ auto XFTPServerCMD::read(struct bufferevent* bev) -> void
         {
             XFTPTask* t = calls_[type];
             t->cmdTask_ = this; /// 用来处理回复命令和目录
+            t->ip_      = ip_;
+            t->port_    = port_;
+            t->base_    = base_;
             t->parse(type, data);
+            if (type == "PORT")
+            {
+                ip_   = t->ip_;
+                port_ = t->port_;
+            }
         }
         else
         {

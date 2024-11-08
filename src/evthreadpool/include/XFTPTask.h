@@ -44,10 +44,29 @@ public:
     /// \param msg
     auto resCMD(std::string msg) -> void;
 
+    /// \brief 连接数据通道
+    auto connectPORT() -> void;
+
+    /// \brief 关闭数据通道
+    auto close() -> void;
+
+    /// \brief 发送数据
+    /// \param data
+    auto send(const std::string &data) -> void;
+
+    /// \brief 发送数据
+    /// \param data
+    /// \param dataSize
+    auto send(const char *data, int dataSize) -> void;
+
+
 public:
     std::string curDir_  = "/";
-    std::string rootDir  = ".";
+    std::string rootDir_ = ".";
     XFTPTask   *cmdTask_ = nullptr;
+
+    std::string ip_   = "";
+    int         port_ = 0;
 
 protected:
     struct bufferevent *bev_ = 0;
