@@ -47,6 +47,48 @@ auto XFTPList::parse(const std::string &type, const std::string &msg) -> void
 
         send(listdata);
     }
+    else if (type == "CWD") /// 切换目录
+    {
+        /// 取出命令中的路径
+        /// CWD /test/
+        int pos = msg.rfind(" ") + 1;
+        /// 去掉结尾的\r\n
+        const std::string path = msg.substr(pos, msg.size() - pos - 2);
+        if (path[0] == '/') /// 局对路径
+        {
+            cmdTask_->curDir_ = path;
+        }
+        else
+        {
+            if (cmdTask_->curDir_[cmdTask_->curDir_.size() - 1] != '/')
+            {
+                cmdTask_->curDir_ += "/";
+            }
+            cmdTask_->curDir_ += path + "/";
+        }
+
+        ///  /test/
+        resCMD("250 Directory succes chanaged.\r\n");
+    }
+    else if (type == "CDUP") /// 回到上层目录
+    {
+        ///  /Debug/test_ser.A3C61E95.tlog /Debug   /Debug/
+        std::string path = cmdTask_->curDir_;
+        /// 统一去掉结尾的 /
+        ///  /Debug/test_ser.A3C61E95.tlog /Debug
+        if (path[path.size() - 1] == '/')
+        {
+            path = path.substr(0, path.size() - 1);
+        }
+        int pos = path.rfind("/");
+        if (pos == -1)
+        {
+            resCMD("250 Directory succes chanaged.\r\n");
+            return;
+        }
+        cmdTask_->curDir_ = path.substr(0, pos + 1);
+        resCMD("250 Directory succes chanaged.\r\n");
+    }
 }
 
 auto XFTPList::write(struct bufferevent *bev) -> void
@@ -117,7 +159,7 @@ std::string XFTPList::getListData(const std::string &path)
         tmp += "\r\n";
         data += tmp;
 
-        std::cout << __func__ << " " << tmp << std::endl;
+        // std::cout << __func__ << " " << tmp;
     }
     while (_findnext(dir, &file) == 0);
 

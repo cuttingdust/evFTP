@@ -19,6 +19,9 @@ auto XFTPFactory::createTask() -> XTask *
 
     x->reg("LIST", list);
 
+    x->reg("CWD", list);
+
+    x->reg("CDUP", list);
 
     return x;
 }
