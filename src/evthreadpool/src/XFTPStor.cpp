@@ -18,12 +18,11 @@ auto XFTPStor::parse(const std::string &type, const std::string &msg) -> void
         path += "/";
     }
     path += filename;
-
-    if (auto fp = fopen(path.c_str(), "wb"))
+    fp_ = fopen(path.c_str(), "wb");
+    if (fp_)
     {
         /// 连接数据通道
         connectPORT();
-        this->fp_ = fp;
 
         /// 发送开始接收文件的指令
         resCMD("125 File OK\r\n");

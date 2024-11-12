@@ -27,11 +27,11 @@ auto XFTPRetr::parse(const std::string &type, const std::string &msg) -> void
     }
 
     path += filename;
-    if (auto fp = fopen(path.c_str(), "rb"))
+    fp_ = fopen(path.c_str(), "rb");
+    if (fp_)
     {
         /// 连接数据通道
         connectPORT();
-        this->fp_ = fp;
 
         /// 发送开始下载文件的指令
         resCMD("150 File OK\r\n");

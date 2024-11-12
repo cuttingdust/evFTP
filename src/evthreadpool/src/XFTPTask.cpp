@@ -52,7 +52,11 @@ auto XFTPTask::connectPORT() -> void
         return;
     }
 
-    close();
+    if (bev_)
+    {
+        bufferevent_free(bev_);
+        bev_ = 0;
+    }
     bev_ = bufferevent_socket_new(base_, -1, BEV_OPT_CLOSE_ON_FREE);
 
     sockaddr_in sin;
