@@ -1,0 +1,6 @@
+syntax="proto3"; /// 版本号
+package XMsg;
+message XMsgHead{
+	int32 	msgSize = 1;
+	string 	msgStr 	= 2;
+}
