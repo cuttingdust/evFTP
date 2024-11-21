@@ -59,6 +59,7 @@ macro(get_src_include)
     # message("SRC = ${SRC}")
     FILE(GLOB H_FILE_I ${CMAKE_CURRENT_LIST_DIR}/include/*.h)
     FILE(GLOB UI_FILES ${CMAKE_CURRENT_LIST_DIR}/src/*.ui)
+    FILE(GLOB PROTO_FILES ${CMAKE_CURRENT_LIST_DIR}/src/*.proto)
 
     if(RC_FILE)
         source_group("Resource Files" FILES ${RC_FILE})
@@ -75,6 +76,21 @@ macro(get_src_include)
         qt4_wrap_cpp()
         source_group("Resource Files" FILES ${QRC_SOURCE_FILES})
     endif()
+	
+	if(PROTO_FILES)
+		if(PROTOC_EXECUTABLE)
+        execute_process(
+            COMMAND ${PROTOC_EXECUTABLE} -I=${CMAKE_CURRENT_LIST_DIR}/src --cpp_out=${CMAKE_CURRENT_LIST_DIR}/src ${PROTO_FILES}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+        )
+        # *.h 文件移动到include目录
+        FILE(GLOB PROTO_CC_FILE ${CMAKE_CURRENT_LIST_DIR}/src/*.pb.cc)
+        FILE(GLOB PROTO_HREADER_FILE ${CMAKE_CURRENT_LIST_DIR}/src/*.pb.h)
+        source_group("Generate Files" FILES ${PROTO_CC_FILE})
+        source_group("Generate Files" FILES ${PROTO_HREADER_FILE})
+		
+        endif()
+	endif()
 endmacro()
 
 # GCC 设置忽略编译告警
@@ -157,7 +173,7 @@ macro(set_cpp name)
 
     if(MSVC)
         set_target_properties(${name} PROPERTIES
-            COMPILE_FLAGS "/Zc:wchar_t-"
+            COMPILE_FLAGS "/Zc:wchar_t"
         )
 
         # set_target_properties(${name} PROPERTIES
@@ -227,6 +243,9 @@ function(cpp_library name)
         ${UI_FILES}
         ${UIC_HEADER}
         ${QRC_FILES}
+
+        ${PROTO_CC_FILE}
+        ${PROTO_HREADER_FILE}
     )
 
     if(NOT version)
@@ -293,9 +312,13 @@ function(cpp_execute name)
     add_executable(${name}
         ${SRC}
         ${H_FILE_I}
+
         ${UIC_HEADER}
         ${QRC_SOURCE_FILES}
         ${RC_FILE}
+
+        ${PROTO_CC_FILE}
+        ${PROTO_HREADER_FILE}
     )
 
     # 设置配置信息

@@ -24,9 +24,25 @@ message("Found Libevent VERSION: ${Libevent_VERSION}")
 find_package(ZLIB REQUIRED)
 message("Found ZLIB FOUND: ${ZLIB_FOUND}")
 message("Found ZLIB VERSION: ${ZLIB_VERSION}")
+find_package(protobuf CONFIG REQUIRED)
+message("Found protobuf FOUND: ${protobuf_FOUND}")
+message("Found protobuf VERSION: ${protobuf_VERSION}")
+find_program(PROTOC_EXECUTABLE protoc)
+if(NOT PROTOC_EXECUTABLE)
+    message(FATAL_ERROR "protoc executable not found")
+else()
+    message(STATUS "Found protoc: ${PROTOC_EXECUTABLE}")
+endif()
+
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CommonTools)
+
+# 外部依赖项
+set(DPS_INCLUDES)
+set(DPS_TARGETS)
+set(DPS_LIBRARYS)
+
 
 add_subdirectory(evserver)
 add_subdirectory(evconf)
@@ -39,6 +55,7 @@ add_subdirectory(evbuffer_zlib_server)
 add_subdirectory(evhttp)
 add_subdirectory(evhttp_client)
 add_subdirectory(evthreadpool)
+add_subdirectory(evbuffer_protobuf)
 
 if(NOT WIN32)
   add_subdirectory(evsignal)
