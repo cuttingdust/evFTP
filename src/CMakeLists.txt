@@ -56,6 +56,7 @@ add_subdirectory(evhttp)
 add_subdirectory(evhttp_client)
 add_subdirectory(evthreadpool)
 add_subdirectory(evbuffer_protobuf)
+add_subdirectory(evbuffer_protobuf_server)
 
 if(NOT WIN32)
   add_subdirectory(evsignal)
