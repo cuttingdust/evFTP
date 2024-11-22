@@ -78,12 +78,12 @@ macro(get_src_include)
     endif()
 	
 	if(PROTO_FILES)
+		source_group("Resource Files" FILES ${PROTO_FILES})
 		if(PROTOC_EXECUTABLE)
         execute_process(
             COMMAND ${PROTOC_EXECUTABLE} -I=${CMAKE_CURRENT_LIST_DIR}/src --cpp_out=${CMAKE_CURRENT_LIST_DIR}/src ${PROTO_FILES}
             WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
         )
-        # *.h 文件移动到include目录
         FILE(GLOB PROTO_CC_FILE ${CMAKE_CURRENT_LIST_DIR}/src/*.pb.cc)
         FILE(GLOB PROTO_HREADER_FILE ${CMAKE_CURRENT_LIST_DIR}/src/*.pb.h)
         source_group("Generate Files" FILES ${PROTO_CC_FILE})
@@ -244,6 +244,7 @@ function(cpp_library name)
         ${UIC_HEADER}
         ${QRC_FILES}
 
+		${PROTO_FILES}
         ${PROTO_CC_FILE}
         ${PROTO_HREADER_FILE}
     )
@@ -317,6 +318,7 @@ function(cpp_execute name)
         ${QRC_SOURCE_FILES}
         ${RC_FILE}
 
+		${PROTO_FILES}
         ${PROTO_CC_FILE}
         ${PROTO_HREADER_FILE}
     )

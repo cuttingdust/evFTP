@@ -1,5 +1,8 @@
 #include "XMsgServer.h"
 
+#include "XMsgCom.pb.h"
+#include "XMsgEvent.h"
+
 #include <iostream>
 
 #include <event2/event.h>
@@ -8,43 +11,65 @@
 
 static void read_cb(struct bufferevent *be, void *arg)
 {
-    std::cout << "[SR]" << std::flush;
-    char data[1024] = { 0 };
-    /// 读取输入缓冲数据
-    int len = bufferevent_read(be, data, sizeof(data) - 1);
-    std::cout << "[" << data << "]" << std::endl;
-    if (len <= 0)
-        return;
-    if (strstr(data, "quit") != nullptr)
+    std::cout << "[SR]:" << std::flush;
+    auto ev = static_cast<XMsgEvent *>(arg);
+
+    if (!ev->recvMsg())
     {
-        std::cout << "quit" << std::endl;
-        /// 退出并关闭socket BEV_OPT_CLOSE_ON_FREE
+        ev->clear();
+        delete ev;
         bufferevent_free(be);
+        return;
+    }
+    auto msg = ev->getMsg();
+    if (!msg)
+    {
+        return;
     }
 
-    /// 发送数据 写入到输出缓冲
-    bufferevent_write(be, "OK", 3);
+    /// 反序列化
+    XMsg::XLoginReq req;
+    req.ParseFromArray(msg->data, msg->size);
+    std::cout << "Recv username = " << req.username() << std::endl;
+    std::cout << "Recv password = " << req.password() << std::endl;
+
+    /// 返回消息
+    XMsg::XLoginRes res;
+    res.set_restype(XMsg::XLoginRes::XRT_OK);
+    std::string token = req.username();
+    token += " sign.";
+    res.set_token(token);
+    ev->sendMsg(XMsg::MT_LOGIN_RES, &res);
+    ev->clear();
+
+    // char data[1024] = { 0 };
+    // /// 读取输入缓冲数据
+    // int len = bufferevent_read(be, data, sizeof(data) - 1);
+    // std::cout << "[" << data << "]" << std::endl;
+    // if (len <= 0)
+    //     return;
+    // if (strstr(data, "quit") != nullptr)
+    // {
+    //     std::cout << "quit" << std::endl;
+    //     /// 退出并关闭socket BEV_OPT_CLOSE_ON_FREE
+    //     bufferevent_free(be);
+    // }
+    //
+    // /// 发送数据 写入到输出缓冲
+    // bufferevent_write(be, "OK", 3);
 }
 
 /// 错误，超时 （连接断开会进入）
 static void event_cb(struct bufferevent *be, short events, void *arg)
 {
-    std::cout << "[E]" << std::flush;
+    std::cout << "[SE]:" << std::flush;
+    const auto ev = static_cast<XMsgEvent *>(arg);
 
-    /// 读取超时时间发生后，数据读取停止
-    if (events & (BEV_EVENT_TIMEOUT | BEV_EVENT_READING))
+    if (events & (BEV_EVENT_TIMEOUT | BEV_EVENT_ERROR | BEV_EVENT_EOF))
     {
-        std::cout << "BEV_EVENT_READING BEV_EVENT_TIMEOUT" << std::endl;
+        std::cout << " BEV_EVENT_TIMEOUT | BEV_EVENT_ERROR  | BEV_EVENT_EOF" << std::endl;
+        delete ev;
         bufferevent_free(be);
-    }
-    else if (events & (BEV_EVENT_ERROR | BEV_EVENT_EOF))
-    {
-        std::cout << "BEV_EVENT_ERROR  | BEV_EVENT_EOF" << std::endl;
-        bufferevent_free(be);
-    }
-    else
-    {
-        std::cout << "OTHERS" << std::endl;
     }
 }
 
@@ -75,8 +100,11 @@ static void listen_cb(struct evconnlistener *evc, evutil_socket_t client_socket,
     timeval t1 = { 30, 0 };
     bufferevent_set_timeouts(bev, &t1, nullptr);
 
+    auto ev = new XMsgEvent();
+    ev->setBev(bev);
+
     /// 设置回调函数
-    bufferevent_setcb(bev, read_cb, 0, event_cb, base);
+    bufferevent_setcb(bev, read_cb, 0, event_cb, ev);
 }
 
 XMsgServer::XMsgServer() = default;
