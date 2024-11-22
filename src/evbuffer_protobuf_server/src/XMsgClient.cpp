@@ -1,7 +1,7 @@
 #include "XMsgClient.h"
 
+#include "XMsgClientEvent.h"
 #include "XMsgCom.pb.h"
-#include "XMsgEvent.h"
 
 
 #include <event2/bufferevent.h>
@@ -16,7 +16,7 @@ using namespace std::chrono_literals;
 static void read_cb(struct bufferevent *be, void *arg)
 {
     std::cout << "[CR]:" << std::flush;
-    auto ev = static_cast<XMsgEvent *>(arg);
+    auto ev = static_cast<XMsgClientEvent *>(arg);
     if (!ev->recvMsg())
     {
         delete ev;
@@ -28,18 +28,7 @@ static void read_cb(struct bufferevent *be, void *arg)
     {
         return;
     }
-    XMsg::XLoginRes res;
-    res.ParseFromArray(msg->data, msg->size);
-    std::cout << "recv server restype=" << res.restype() << ", recv server token =" << res.token() << std::endl;
-
-    XMsg::XLoginReq req;
-    char            buf[1024] = { 0 };
-    static int      count     = 0;
-    count++;
-    sprintf(buf, "root_%d", count);
-    req.set_username(buf);
-    req.set_password("123456");
-    ev->sendMsg(XMsg::MT_LOGIN_REQ, &req);
+    ev->callFunc(msg->type, msg->data, msg->size);
     ev->clear(); /// 清理，开始接收下一次消息
 
     // char data[1024] = { 0 };
@@ -116,7 +105,8 @@ XMsgClient::PImpl::PImpl(XMsgClient *owenr) : owenr_(owenr)
 void XMsgClient::PImpl::threadFunc()
 {
     std::cout << "XMsgClient::PImpl::threadFunc start" << std::endl;
-
+    /// 注册消息回调函数
+    XMsgClientEvent::initEvent();
     if (server_port_ < 0)
     {
         std::cerr << "server port is invalid!" << std::endl;
@@ -152,7 +142,7 @@ void XMsgClient::PImpl::threadFunc()
     timeval t1 = { 30, 0 };
     bufferevent_set_timeouts(bev, &t1, 0);
 
-    auto ev = new XMsgEvent;
+    auto ev = new XMsgClientEvent;
     ev->setBev(bev);
 
     ///设置回调函数

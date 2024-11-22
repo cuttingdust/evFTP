@@ -1,7 +1,7 @@
 #include "XMsgServer.h"
 
 #include "XMsgCom.pb.h"
-#include "XMsgEvent.h"
+#include "XMsgServerEvent.h"
 
 #include <iostream>
 
@@ -12,7 +12,7 @@
 static void read_cb(struct bufferevent *be, void *arg)
 {
     std::cout << "[SR]:" << std::flush;
-    auto ev = static_cast<XMsgEvent *>(arg);
+    auto ev = static_cast<XMsgServerEvent *>(arg);
 
     if (!ev->recvMsg())
     {
@@ -27,19 +27,7 @@ static void read_cb(struct bufferevent *be, void *arg)
         return;
     }
 
-    /// 反序列化
-    XMsg::XLoginReq req;
-    req.ParseFromArray(msg->data, msg->size);
-    std::cout << "Recv username = " << req.username() << std::endl;
-    std::cout << "Recv password = " << req.password() << std::endl;
-
-    /// 返回消息
-    XMsg::XLoginRes res;
-    res.set_restype(XMsg::XLoginRes::XRT_OK);
-    std::string token = req.username();
-    token += " sign.";
-    res.set_token(token);
-    ev->sendMsg(XMsg::MT_LOGIN_RES, &res);
+    ev->callFunc(msg->type, msg->data, msg->size);
     ev->clear();
 
     // char data[1024] = { 0 };
@@ -100,7 +88,7 @@ static void listen_cb(struct evconnlistener *evc, evutil_socket_t client_socket,
     timeval t1 = { 30, 0 };
     bufferevent_set_timeouts(bev, &t1, nullptr);
 
-    auto ev = new XMsgEvent();
+    auto ev = new XMsgServerEvent();
     ev->setBev(bev);
 
     /// 设置回调函数
@@ -114,6 +102,9 @@ XMsgServer::~XMsgServer() = default;
 void XMsgServer::initServer(int serverPort)
 {
     std::cout << "XMsgServer::initServer" << std::endl;
+
+    XMsgServerEvent::initEvent();
+
     ///创建libevent的上下文
     event_base *base = event_base_new();
     if (base)

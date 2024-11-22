@@ -87,6 +87,8 @@ bool XMsgEvent::recvMsg()
             std::cerr << "msg_.alloc failed!" << std::endl;
             return false;
         }
+        /// 设置消息类型
+        impl_->msg_.type = pb_head.msgtype();
     }
 
     /// 3 开始接收消息内容
